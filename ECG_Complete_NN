@@ -1,0 +1,589 @@
+import tensorflow as tf
+from tensorflow import keras
+import numpy as np
+import matplotlib.pyplot as plt
+import wfdb
+from wfdb import processing
+import os
+import shutil
+import re
+import math
+
+
+
+
+SAMPLES = 6500
+record = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+labels = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+qrs_inds = [0]*500
+search_radius = [0]*500
+corrected_peak_inds = [0]*500
+
+
+
+
+#http://code.activestate.com/recipes/442460-increment-numbers-in-a-string/
+
+lastNum = re.compile(r'(?:[^\d]*(\d+)[^\d]*)+')
+
+def increment(s, i):
+    """ look for the last sequence of number(s) in a string and increment """
+    m = lastNum.search(s)
+    if m:
+        next = str(int(m.group(1))+i)
+        start, end = m.span(1)
+        s = s[:max(end-len(next), start)] + next + s[end:]
+    return s
+
+
+def peaks_hr(sig, peak_inds, fs, title, figsize=(20, 10), saveto=None):
+    "Plot a signal with its peaks and heart rate"
+    # Calculate heart rate
+    hrs = processing.compute_hr(sig_len=sig.shape[0], qrs_inds=peak_inds, fs=fs)
+    
+    N = sig.shape[0]
+    
+    fig, ax_left = plt.subplots(figsize=figsize)
+    ax_right = ax_left.twinx()
+    
+    ax_left.plot(sig, color='#3979f0', label='Signal')
+    ax_left.plot(peak_inds, sig[peak_inds], 'rx', marker='x', color='#8b0000', label='Peak', markersize=12)
+    ax_right.plot(np.arange(N), hrs, label='Heart rate', color='m', linewidth=2)
+
+    ax_left.set_title(title)
+
+    ax_left.set_xlabel('Time (ms)')
+    ax_left.set_ylabel('ECG (mV)', color='#3979f0')
+    ax_right.set_ylabel('Heart rate (bpm)', color='m')
+    # Make the y-axis label, ticks and tick labels match the line color.
+    ax_left.tick_params('y', colors='#3979f0')
+    ax_right.tick_params('y', colors='m')
+    if saveto is not None:
+        plt.savefig(saveto, dpi=600)
+    plt.show()
+    
+    
+    
+###################################################################################    
+    
+    
+#record[0] = wfdb.rdrecord('sample-data/119', sampfrom=0, sampto=SAMPLES, channels=[0])
+#annotation = wfdb.rdann('sample-data/200', 'atr', sampto = 15000)
+
+
+
+###################################################################################
+
+
+
+
+
+
+
+
+
+
+
+min_bpm = 20
+max_bpm = 230
+m=0
+#for i in range(9): #NOT NINE
+#    n=i
+#    record[m] =wfdb.rdrecord(increment("sample-data/100", n),channels=[0]) 
+#    #wfdb.plot_wfdb(record=record[m], title=increment('Record 100', n))
+#    labels[m]=wfdb.rdann(increment("sample-data/100", n), 'atr')
+#    
+#    # Use the gqrs algorithm to detect qrs locations in the first channel
+#    qrs_inds[m] = processing.gqrs_detect(sig=record[m].p_signal[:,0], fs=record[m].fs)
+#
+#    
+#    # Correct the peaks shifting them to local maxima
+#    search_radius[m] = int(record[m].fs * 60 / max_bpm)
+#    corrected_peak_inds[m] = processing.correct_peaks(record[m].p_signal[:,0], peak_inds=qrs_inds[m],
+#                                               search_radius=search_radius[m], smooth_window_size=150)
+#    
+#    m=m+1
+    
+print(m)
+
+#for i in range(9):
+#    n=i
+#    record[m] =wfdb.rdrecord(increment("sample-data/111", n),channels=[0]) 
+#    #wfdb.plot_wfdb(record=record[m], title=increment('Record 111', n))
+##    labels[m]=wfdb.rdann(increment("sample-data/111", n), 'atr')
+#    
+#        # Use the gqrs algorithm to detect qrs locations in the first channel
+#    qrs_inds[m] = processing.gqrs_detect(sig=record[m].p_signal[:,0], fs=record[m].fs)
+#
+#    
+#    # Correct the peaks shifting them to local maxima
+#    search_radius[m] = int(record[m].fs * 60 / max_bpm)
+#    corrected_peak_inds[m] = processing.correct_peaks(record[m].p_signal[:,0], peak_inds=qrs_inds[m],
+#                                              search_radius=search_radius[m], smooth_window_size=150)
+#    
+#    m=m+1
+    
+    
+print(m)
+    
+#for i in range(3):
+#    n=i
+#    record[m] =wfdb.rdrecord(increment("sample-data/121", n),channels=[0]) 
+#    #wfdb.plot_wfdb(record=record[m], title=increment('Record 121', n))
+#    labels[m]=wfdb.rdann(increment("sample-data/121", n), 'atr')
+#    
+#            # Use the gqrs algorithm to detect qrs locations in the first channel
+#    qrs_inds[m] = processing.gqrs_detect(sig=record[m].p_signal[:,0], fs=record[m].fs)
+#
+#    
+#   # Correct the peaks shifting them to local maxima
+#    search_radius[m] = int(record[m].fs * 60 / max_bpm)
+#    corrected_peak_inds[m] = processing.correct_peaks(record[m].p_signal[:,0], peak_inds=qrs_inds[m],
+#                                               search_radius=search_radius[m], smooth_window_size=150)
+#    
+#    m=m+1
+    
+print(m)
+        
+#for i in range(4):
+#    n=i
+#    record[m] =wfdb.rdrecord(increment("sample-data/200", n),channels=[0]) 
+#    #wfdb.plot_wfdb(record=record[m], title=increment('Record 200', n))
+#    labels[m]=wfdb.rdann(increment("sample-data/200", n), 'atr')
+#    
+#            # Use the gqrs algorithm to detect qrs locations in the first channel
+#    qrs_inds[m] = processing.gqrs_detect(sig=record[m].p_signal[:,0], fs=record[m].fs)
+#
+#    
+#   # Correct the peaks shifting them to local maxima
+#    search_radius[m] = int(record[m].fs * 60 / max_bpm)
+#    corrected_peak_inds[m] = processing.correct_peaks(record[m].p_signal[:,0], peak_inds=qrs_inds[m],
+#                                               search_radius=search_radius[m], smooth_window_size=150)
+#    
+#    m=m+1
+    
+print(m)
+            
+#for i in range(1):
+#    n=i
+#    record[m] =wfdb.rdrecord(increment("sample-data/205", n),channels=[0]) 
+#    #wfdb.plot_wfdb(record=record[m], title=increment('Record 205', n))
+#    labels[m]=wfdb.rdann(increment("sample-data/205", n), 'atr')
+#    
+#                # Use the gqrs algorithm to detect qrs locations in the first channel
+#    qrs_inds[m] = processing.gqrs_detect(sig=record[m].p_signal[:,0], fs=record[m].fs)
+#
+#    
+#    # Correct the peaks shifting them to local maxima
+#    search_radius[m] = int(record[m].fs * 60 / max_bpm)
+#    corrected_peak_inds[m] = processing.correct_peaks(record[m].p_signal[:,0], peak_inds=qrs_inds[m],
+#                                               search_radius=search_radius[m], smooth_window_size=150)
+#    
+#    m=m+1
+
+print(m)
+    
+for i in range(4):
+    n=i
+    record[m] =wfdb.rdrecord(increment("sample-data/207", n),channels=[0]) 
+    #wfdb.plot_wfdb(record=record[m], title=increment('Record 207', n))
+    labels[m]=wfdb.rdann(increment("sample-data/207", n), 'atr')
+        
+                # Use the gqrs algorithm to detect qrs locations in the first channel
+    qrs_inds[m] = processing.gqrs_detect(sig=record[m].p_signal[:,0], fs=record[m].fs)
+
+    
+    # Correct the peaks shifting them to local maxima
+    search_radius[m] = int(record[m].fs * 60 / max_bpm)
+    corrected_peak_inds[m] = processing.correct_peaks(record[m].p_signal[:,0], peak_inds=qrs_inds[m],
+                                               search_radius=search_radius[m], smooth_window_size=150)
+        
+    m=m+1
+
+print(m)
+
+for i in range(4):
+    n=i
+    record[m] =wfdb.rdrecord(increment("sample-data/212", n),channels=[0]) 
+    #wfdb.plot_wfdb(record=record[m], title=increment('Record 212', n))
+    labels[m]=wfdb.rdann(increment("sample-data/212", n), 'atr')
+    
+                # Use the gqrs algorithm to detect qrs locations in the first channel
+    qrs_inds[m] = processing.gqrs_detect(sig=record[m].p_signal[:,0], fs=record[m].fs)
+
+    
+    # Correct the peaks shifting them to local maxima
+    search_radius[m] = int(record[m].fs * 60 / max_bpm)
+    corrected_peak_inds[m] = processing.correct_peaks(record[m].p_signal[:,0], peak_inds=qrs_inds[m],
+                                               search_radius=search_radius[m], smooth_window_size=150)
+    
+    m=m+1
+    
+print(m)
+    
+for i in range(1):
+    n=i
+    record[m] =wfdb.rdrecord(increment("sample-data/217", n),channels=[0]) 
+    #wfdb.plot_wfdb(record=record[m], title=increment('Record 217', n))
+    labels[m]=wfdb.rdann(increment("sample-data/217", n), 'atr')
+    
+                # Use the gqrs algorithm to detect qrs locations in the first channel
+    qrs_inds[m] = processing.gqrs_detect(sig=record[m].p_signal[:,0], fs=record[m].fs)
+
+    
+    # Correct the peaks shifting them to local maxima
+    search_radius[m] = int(record[m].fs * 60 / max_bpm)
+    corrected_peak_inds[m] = processing.correct_peaks(record[m].p_signal[:,0], peak_inds=qrs_inds[m],
+                                               search_radius=search_radius[m], smooth_window_size=150)
+    
+    m=m+1
+    
+print(m)
+    
+for i in range(5):
+    n=i
+    record[m] =wfdb.rdrecord(increment("sample-data/219", n),channels=[0]) 
+    #wfdb.plot_wfdb(record=record[m], title=increment('Record 219', n))
+    labels[m]=wfdb.rdann(increment("sample-data/219", n), 'atr')
+        
+                # Use the gqrs algorithm to detect qrs locations in the first channel
+    qrs_inds[m] = processing.gqrs_detect(sig=record[m].p_signal[:,0], fs=record[m].fs)
+
+    
+    # Correct the peaks shifting them to local maxima
+    search_radius[m] = int(record[m].fs * 60 / max_bpm)
+    corrected_peak_inds[m] = processing.correct_peaks(record[m].p_signal[:,0], peak_inds=qrs_inds[m],
+                                               search_radius=search_radius[m], smooth_window_size=150)
+        
+    m=m+1
+    
+print(m)
+
+for i in range(1):
+    n=i
+    record[m] =wfdb.rdrecord(increment("sample-data/228", n),channels=[0]) 
+    #wfdb.plot_wfdb(record=record[m], title=increment('Record 228', n))
+    labels[m]=wfdb.rdann(increment("sample-data/228", n), 'atr')
+    
+                # Use the gqrs algorithm to detect qrs locations in the first channel
+    qrs_inds[m] = processing.gqrs_detect(sig=record[m].p_signal[:,0], fs=record[m].fs)
+
+    
+    # Correct the peaks shifting them to local maxima
+    search_radius[m] = int(record[m].fs * 60 / max_bpm)
+    corrected_peak_inds[m] = processing.correct_peaks(record[m].p_signal[:,0], peak_inds=qrs_inds[m],
+                                               search_radius=search_radius[m], smooth_window_size=150)
+    
+    m=m+1
+    
+print(m)
+        
+for i in range(5):
+    n=i
+    record[m] =wfdb.rdrecord(increment("sample-data/230", n),channels=[0]) 
+    #wfdb.plot_wfdb(record=record[m], title=increment('Record 230', n))
+    labels[m]=wfdb.rdann(increment("sample-data/230", n), 'atr')
+    
+                    # Use the gqrs algorithm to detect qrs locations in the first channel
+    qrs_inds[m] = processing.gqrs_detect(sig=record[m].p_signal[:,0], fs=record[m].fs)
+
+    
+    # Correct the peaks shifting them to local maxima
+    search_radius[m] = int(record[m].fs * 60 / max_bpm)
+    corrected_peak_inds[m] = processing.correct_peaks(record[m].p_signal[:,0], peak_inds=qrs_inds[m],
+                                               search_radius=search_radius[m], smooth_window_size=150)
+    
+    m=m+1
+
+print(m-1)
+    
+print(len(corrected_peak_inds[0]))    
+for i in range(0,20):   #NOT NINE
+    print(len(corrected_peak_inds[i]))
+
+
+
+
+
+
+Peaks = [0]*500
+#Gives (x,y) coord of each identified peak
+for i in range(0, len(corrected_peak_inds)):
+    Temp = record[0].p_signal[corrected_peak_inds[i]]
+    PEAKS = (corrected_peak_inds[i], Temp[0])
+    Peaks[i] = PEAKS
+
+#print(PEAKS)
+#print(Peaks)
+
+
+
+#labels[0]=wfdb.rdann("sample-data/119", 'atr')
+#labels.symbol corresponds to class eg. 'N', 'V', '+'
+#labels.sample corresponds to position in the array eg. Max of 650000
+
+if labels[0].symbol[8] == 'N':
+    print('TRUE')
+else:
+    print('FALSE')
+
+#print(labels[0].symbol[8])    
+#print(labels[0].symbol)
+#print(labels[5].sample)
+#print(corrected_peak_inds[5])
+#print(labels[45].symbol)
+#print(labels[45].sample)
+
+
+#print(labels[0].symbol)
+#print(len(labels[0].symbol))
+
+#print(labels[0].sample)
+#print(len(labels[0].sample))
+
+#print(record[0].fs)
+#print(labels[0].symbol[0])
+#print(labels[0].sample[0])
+
+Length = [0]*46
+
+for i in range(0,20): #NOT NINE
+    Length[i] = len(corrected_peak_inds[i])
+    print(len(corrected_peak_inds[i]))
+    
+print('Above is corrected peak inds')    
+    
+    
+
+peak_seperation = np.zeros((46, max(Length)-1))
+cut_start = np.zeros((46, max(Length)-1))
+
+
+
+
+
+
+
+#IGNORES THE FIRST POINT FOR SOME REASON
+for j in range(0,20): #NOT NINE
+    for i in range(len(corrected_peak_inds[j])-1):
+        peak_seperation[j,i] = corrected_peak_inds[j][i+1] - corrected_peak_inds[j][i]    
+        #print(peak_seperation)
+        cut_start[j,i] = math.ceil(corrected_peak_inds[j][i] - (0.25 * peak_seperation[j,i]))
+        #print(cut_start[i])
+        #print(corrected_peak_inds[i])
+        #print(peak_seperation[i])
+    
+cut_start = np.ndarray.astype(cut_start,int)
+    
+#for i in range(0, len(beat_start)):
+
+cut_length = np.zeros((46, max(Length)-2)) # -2 as -1 from cut_start and another -1 when going to cut_length
+                                           # can also use np.amax(len(cut_start[0,:]))
+
+for j in range(0,20): #NOT NINE
+    for i in range(max(Length)-2):
+        cut_length[j,i] = cut_start[j,i+1] - cut_start[j,i]
+    
+
+
+#cut_beat = [0]*46
+#for i in range(46):
+#    cut_beat[i] = [0]*15000
+cut_beat = np.zeros((46, 15000, int(np.amax(cut_length))))
+#cut_beat = [0]*(max(Length)-2)
+
+B = 0
+Beats_Per_Sample = [0]*46
+
+for j in range(0,20): #NOT NINE
+    for i in range(Length[j]-2): #cycles through number of cut beats (So length of corrected index -2)
+        for m in range(cut_start[j,i],cut_start[j,i+1]): #i+1 is always out of range for the last value
+            #print(m)                                #Needs to end at last value of array (650,000 at last point) but cba 
+            cut_beat[j, B, (m-cut_start[j,i])] = record[j].p_signal[m] #MAKE SURE THAT AT START WE ONLY TAKING SIGNAL[0]!!
+            #print(cut_beat)
+        B = B+1           ###########(IS B+1 one too many each time??)
+    print(B)
+    Beats_Per_Sample[j] = B 
+    B = 0        
+print('Above is B')    
+    
+#print(cut_beat)
+#print(len(cut_beat[1,:]))
+Label_Length = [0]*46
+
+for i in range(0,20): #NOT NINE
+    Label_Length[i] = len(labels[i].symbol)
+    #print(len(labels[i].symbol))
+
+Useable_Beats = np.zeros((50000, int(np.amax(cut_length))))
+Useable_Labels = [0]*50000
+Useable_Starting_Points = [0]*50000
+
+print('CHECKPOINT 1')
+x = 0
+q = -1
+Q = 0
+
+############
+for j in range(0,20): #NOT NINE
+    print('This be Q')
+    print(Q)
+    Q = 0
+        
+    for i in range(Length[j]):# length of repective corrected_peak_inds
+
+        for q in range(len(labels[j].sample)):
+            
+            if abs(corrected_peak_inds[j][i]-labels[j].sample[q]) < 20  and cut_beat[j,i,0] != 0:
+                if labels[j].symbol[q] == 'N' or labels[j].symbol[q] == 'L'or labels[j].symbol[q] == 'R' or labels[j].symbol[q] == 'V':
+                    #print(abs(corrected_peak_inds[i]-labels[0].sample[n]))
+                    #print(corrected_peak_inds[i])
+                    #print(labels[0].sample[n])
+                    Useable_Beats[x,:] = cut_beat[j,i,:]   
+                    Useable_Labels[x] = labels[j].symbol[q]
+                    #Useable_Starting_Points[x] = cut_start[j,i]
+                    x = x + 1
+                    #Q = Q + 1
+
+    #Q=Q+1
+    
+    
+#-Perhaps instead I should do if first and check through labels.symbol if it either ‘N’, ‘V’ etc… and 
+#only then compare labels.sample position to the corrected peaks inds 
+#Nah, it works
+                
+print(Q)            
+                
+
+                    
+                    #######
+                    #FOR TOMORROW
+                    #CORRECT THE WAY YOU DO THE LOOP ABOVE
+                    #ALWAYS MORE SAMPLES THAN PEAKS
+                    #SO IF DON'T MATCH THEN MOVE ONE FURTHER IN SAMPLE ARRAY RATHER THAN CHECK ALL
+                    #GETS RID OF ONE OF THE LOOPS THSI WAY AND MAKES IT EASIER TO SPOT WHAT GOING WRONG
+                    
+ ##############
+
+#for n in range(min(Label_Length[0:4])):###THIS IS WRONG, NEED IT TO GO TO MAX BUT NOT OUT OF BOUNDS OF SMALLER ARRAY
+print('CHECKPOINT 2')           
+
+#Useable_Labels = np.trim_zeros(Useable_Labels)   
+
+Useable_Labels = np.trim_zeros(Useable_Labels)
+Norm_Labels = [0]*len(Useable_Labels)
+
+aa = 0
+bb = 0
+cc = 0
+dd = 0
+xx = 0
+
+
+for i in range(len(Useable_Labels)):
+    if Useable_Labels[i] == 'N':
+        Norm_Labels[i] = 0
+        aa = aa + 1
+    if Useable_Labels[i] == 'V':
+        Norm_Labels[i] = 1
+        bb = bb + 1
+    if Useable_Labels[i] == 'R':
+        Norm_Labels[i] = 2
+        cc = cc + 1
+    if Useable_Labels[i] == 'L':
+        Norm_Labels[i] = 3
+        dd = dd + 1
+    if Useable_Labels[i] != 'N' and Useable_Labels[i] != 'V' and Useable_Labels[i] != 'R' and Useable_Labels[i] != 'L':
+        Norm_Labels[i] = 9
+        xx = xx + 1
+        
+print('CHECKPOINT 3')
+
+Buffer_Beats = np.zeros((len(Norm_Labels), int(np.amax(cut_length))))
+
+for i in range(len(Norm_Labels)):
+    Buffer_Beats[i,:] = Useable_Beats[i,:]
+
+
+Norm_Beats=Buffer_Beats/(np.amax(abs(Buffer_Beats))) #Useable_Beats
+
+Norm_Labels = np.array(Norm_Labels)
+Norm_Beats = np.array(Norm_Beats)
+
+def unison_shuffled_copies(a, b):
+    assert len(a) == len(b)
+    p = np.random.permutation(len(a))
+    return a[p], b[p]
+
+Norm_Beats, Norm_Labels = unison_shuffled_copies(Norm_Beats, Norm_Labels)
+
+TRAINING_NUMBER = 1000
+
+Train_Beats = np.zeros((len(Useable_Labels)-TRAINING_NUMBER,int(np.amax(cut_length))))
+Train_Labels = [0]*(len(Useable_Labels)-TRAINING_NUMBER)
+Test_Beats = np.zeros((TRAINING_NUMBER,int(np.amax(cut_length))))
+Test_Labels = [0]*(TRAINING_NUMBER)
+
+
+
+for i in range(len(Useable_Labels)-TRAINING_NUMBER):
+    Train_Beats[i,:] = Norm_Beats[i,:]
+    Train_Labels[i] = Norm_Labels[i]
+for i in range(len(Useable_Labels)-TRAINING_NUMBER,len(Useable_Labels)):
+    Test_Beats[i-(len(Useable_Labels)-TRAINING_NUMBER),:] = Norm_Beats[i,:]
+    Test_Labels[i-(len(Useable_Labels)-TRAINING_NUMBER)] = Norm_Labels[i]
+    
+Train_Labels = np.array(Train_Labels)
+Train_Beats = np.array(Train_Beats)
+Test_Labels = np.array(Test_Labels)
+Test_Beats = np.array(Test_Beats)
+
+
+
+
+
+#model = keras.Sequential([
+#    keras.layers.Dense(len(Norm_Beats[0]), activation='relu'),
+#    keras.layers.Dense(4, activation='softmax')
+#])
+
+model = keras.Sequential([
+    keras.layers.Dense(len(Norm_Beats[0]), activation='relu'),
+    keras.layers.Dense(units=64, activation='relu'),
+    keras.layers.Dense(units=32, activation='relu'),
+    keras.layers.Dense(units=16, activation='relu'),
+    keras.layers.Dense(units=8, activation='relu'),
+    keras.layers.Dense(units=4, activation='relu'),
+    keras.layers.Dense(units=4, activation='softmax')
+])
+
+model.compile(loss='sparse_categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+
+
+
+model.fit(Train_Beats, Train_Labels, epochs=5, batch_size=10)
+
+
+
+predictions = [0]*TRAINING_NUMBER
+d = 0;
+w = 0;
+
+predictions = model.predict(Test_Beats)
+for i in range(TRAINING_NUMBER):
+    print(predictions[i])
+    print(np.argmax(predictions[i]))
+    print(Test_Labels[i])
+    print(i)
+    if np.argmax(predictions[i]) != Test_Labels[i]: 
+        d = d + 1
+        print('ERROR MADE HERE')
+    if np.amax(predictions[i]) < 0.9:
+        print('Warning')
+        w = w + 1
+
+print('\nNo. Errors:', d)
+print('\nNo. Warnings:', w)
+q = (1 - d/TRAINING_NUMBER)*100
+print('\nTest accuracy:', q)
