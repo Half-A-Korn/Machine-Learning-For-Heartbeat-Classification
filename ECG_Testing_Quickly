@@ -1,0 +1,174 @@
+##MERGE DATA TO MAKE THE MAIN FILE###
+##SEE BELOW IF MAIN FILE AVALIABLE ALREADY##
+
+import pandas as pd
+import numpy as np
+Norm_Beats1 = pd.read_csv('C:/Users/benlc/downloads/FYP_Norm_Beats_25.txt', delim_whitespace=True, header=None).astype(float).values
+Norm_Labels1 = pd.read_csv('C:/Users/benlc/downloads/FYP_Norm_Labels_25.txt', delim_whitespace=True, header=None).astype(float).values
+Norm_Beats2 = pd.read_csv('C:/Users/benlc/downloads/FYP_Norm_Beats_20.txt', delim_whitespace=True, header=None).astype(float).values
+Norm_Labels2 = pd.read_csv('C:/Users/benlc/downloads/FYP_Norm_Labels_20.txt', delim_whitespace=True, header=None).astype(float).values
+
+Norm_Beats = np.zeros((44624+43646, 2924))
+
+for i in range(44624):
+    Norm_Beats[i,:] = Norm_Beats1[i,:]
+    
+for i in range(43646):
+    Norm_Beats[i+44624,0:2535] = Norm_Beats2[i,:]
+
+Norm_Labels = [0]*(44624+43646)
+
+for i in range(44624):
+    Norm_Labels[i] = Norm_Labels1[i,:]
+    
+for i in range(43646):
+    Norm_Labels[i+44624] = Norm_Labels2[i]
+
+Norm_Labels = np.array(Norm_Labels)
+Norm_Beats = np.array(Norm_Beats)
+    
+print(Norm_Beats)
+print(Norm_Labels)
+
+#np.savetxt('C:/Users/benlc/downloads/FYP_Norm_Beats_FULL.txt', Norm_Beats)
+#np.savetxt('C:/Users/benlc/downloads/FYP_Norm_Labels_FULL.txt', Norm_Labels)
+
+www = 0
+for i in range(len(Norm_Labels)):
+    if Norm_Labels[i] == 1:
+        www = www + 1
+print(www)
+
+#########NEW CELL################
+
+##USE IF FULL DATA ALREADY LOADED FROM HERE####
+
+
+import tensorflow as tf
+from tensorflow import keras
+import numpy as np
+import matplotlib.pyplot as plt
+import wfdb
+from wfdb import processing
+import os
+import shutil
+import re
+import math
+
+Norm_Beats = pd.read_csv('C:/Users/benlc/downloads/FYP_Norm_Beats_FULL.txt', delim_whitespace=True, header=None).astype(float).values
+Norm_Labels = pd.read_csv('C:/Users/benlc/downloads/FYP_Norm_Labels_FULL.txt', delim_whitespace=True, header=None).astype(float).values
+
+Useable_Labels = [0]*(44624+43646)
+
+Norm_Labels = np.array(Norm_Labels)
+Norm_Beats = np.array(Norm_Beats)
+
+def unison_shuffled_copies(a, b):
+    assert len(a) == len(b)
+    p = np.random.permutation(len(a))
+    return a[p], b[p]
+
+Norm_Beats, Norm_Labels = unison_shuffled_copies(Norm_Beats, Norm_Labels)
+
+TRAINING_NUMBER = 10000
+
+Train_Beats = np.zeros((len(Useable_Labels)-TRAINING_NUMBER,2924))
+Train_Labels = [0]*(len(Useable_Labels)-TRAINING_NUMBER)
+Test_Beats = np.zeros((TRAINING_NUMBER,2924))
+Test_Labels = [0]*(TRAINING_NUMBER)
+
+
+
+for i in range(len(Useable_Labels)-TRAINING_NUMBER):
+    Train_Beats[i,:] = Norm_Beats[i,:]
+    Train_Labels[i] = Norm_Labels[i]
+for i in range(len(Useable_Labels)-TRAINING_NUMBER,len(Useable_Labels)):
+    Test_Beats[i-(len(Useable_Labels)-TRAINING_NUMBER),:] = Norm_Beats[i,:]
+    Test_Labels[i-(len(Useable_Labels)-TRAINING_NUMBER)] = Norm_Labels[i]
+    
+Train_Labels = np.array(Train_Labels)
+Train_Beats = np.array(Train_Beats)
+Test_Labels = np.array(Test_Labels)
+Test_Beats = np.array(Test_Beats)
+
+
+
+
+
+#model = keras.Sequential([
+#    keras.layers.Dense(len(Norm_Beats[0]), activation='relu'),
+#    keras.layers.Dense(4, activation='softmax')
+#])
+
+
+
+model = keras.Sequential([
+    keras.layers.Dense(len(Norm_Beats[0]), activation='relu'),
+    keras.layers.Dense(units=64, activation='relu'),
+    keras.layers.Dense(units=32, activation='relu'),
+    keras.layers.Dense(units=16, activation='relu'),
+    keras.layers.Dense(units=8, activation='relu'),
+    keras.layers.Dense(units=4, activation='relu'),
+    keras.layers.Dense(units=4, activation='softmax')
+])
+
+model.compile(loss='sparse_categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+
+
+
+model.fit(Train_Beats, Train_Labels, epochs=5, batch_size=10)
+
+
+
+predictions = [0]*TRAINING_NUMBER
+d = 0
+w = 0
+Ouch = 0
+Nx = 0
+Vx = 0
+Lx = 0
+Rx = 0
+Nn = 0
+Vn = 0
+Ln = 0
+Rn = 0
+
+predictions = model.predict(Test_Beats)
+for i in range(TRAINING_NUMBER):
+    print(predictions[i])
+    print(np.argmax(predictions[i]))
+    print(Test_Labels[i])
+    print(i)
+    if np.argmax(predictions[i]) != Test_Labels[i]: 
+        d = d + 1
+        print('ERROR MADE HERE')
+        if np.amax(predictions[i]) > 0.9:
+            Ouch = Ouch + 1
+        if Test_Labels[i] == 0:
+            Nx = Nx + np.amax(predictions[i])
+            Nn = Nn + 1
+        if Test_Labels[i] == 1:
+            Vx = Vx + np.amax(predictions[i])
+            Vn = Vn + 1
+        if Test_Labels[i] == 2:
+            Lx = Lx + np.amax(predictions[i])
+            Ln = Ln + 1
+        if Test_Labels[i] == 3:
+            Rx = Rx + np.amax(predictions[i])
+            Rn = Rn + 1
+        
+    if np.amax(predictions[i]) < 0.9:
+        print('Warning')
+        w = w + 1
+
+print('\nNo. Errors:', d)
+print('\nNo. Warnings:', w)
+q = (1 - d/TRAINING_NUMBER)*100
+print('\nTest accuracy:', q)
+r = (1 - w/TRAINING_NUMBER)*100
+print('\nRobust accuracy:', r)
+print(Ouch)
+print(Nx/Nn)
+print(Vx/Vn)
+print(Lx/Ln)
+print(Rx/Rn)
