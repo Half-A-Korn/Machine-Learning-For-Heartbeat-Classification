@@ -1,0 +1,540 @@
+###USED TO NORMALISE EACH BEAT WITHIN ITS OWN CLASS SO CAN GENERATE NEW ONES FROM IT###
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+Norm_Beats = pd.read_csv('C:/Users/benlc/downloads/FYP_Norm_Beats_FULL.txt', delim_whitespace=True, header=None).astype(float).values
+Norm_Labels = pd.read_csv('C:/Users/benlc/downloads/FYP_Norm_Labels_FULL.txt', delim_whitespace=True, header=None).astype(float).values
+
+#print(Norm_Beats)
+
+print(len(Norm_Beats))
+print(len(Norm_Labels))
+
+aaa = 0
+bbb = 0
+ccc = 0
+ddd = 0
+xxx = 0
+
+for i in range(len(Norm_Labels)):
+    if Norm_Labels[i] == 0:
+        aaa = aaa + 1
+    if Norm_Labels[i] == 1:
+        bbb = bbb + 1
+    if Norm_Labels[i] == 2:
+        ccc = ccc + 1
+    if Norm_Labels[i] == 3:
+        ddd = ddd + 1
+    if Norm_Labels[i] == 9:
+        xxx = xxx + 1
+
+print('\nNo. Normal Beats:', aaa)
+print('\nNo. Ventricular Beats:', bbb)        
+print('\nNo. RBB Beats:', ccc)        
+print('\nNo. LBB Beats:', ddd)        
+print('\nNo. Errors:', xxx)        
+
+
+Store_Lengths = [0]*len(Norm_Labels)
+print('\nLongest Beat Length:', len(Norm_Beats[0,:]))
+
+
+for i in range(len(Norm_Labels)):
+    Store_Lengths[i] = np.count_nonzero(Norm_Beats[i,:])
+    
+N_Lengths = [0]*aaa
+V_Lengths = [0]*bbb
+R_Lengths = [0]*ccc
+L_Lengths = [0]*ddd
+
+
+a = 0
+b = 0
+c = 0
+d = 0
+
+for i in range(len(Norm_Labels)):
+    if Norm_Labels[i] == 0:
+        N_Lengths[a] = Store_Lengths[i]
+        a = a + 1
+    if Norm_Labels[i] == 1:
+        V_Lengths[b] = Store_Lengths[i]
+        b = b + 1
+    if Norm_Labels[i] == 2:
+        R_Lengths[c] = Store_Lengths[i]
+        c = c + 1
+    if Norm_Labels[i] == 3:
+        L_Lengths[d] = Store_Lengths[i]
+        d = d + 1
+    
+    
+N_Beats = np.zeros((aaa, len(Norm_Beats[0,:])))    
+V_Beats = np.zeros((bbb, len(Norm_Beats[0,:])))
+R_Beats = np.zeros((ccc, len(Norm_Beats[0,:])))
+L_Beats = np.zeros((ddd, len(Norm_Beats[0,:])))
+    
+print('\nLongest Beat Length in this data:', np.amax(Store_Lengths))
+print('\nLongest Beat Length in N:', np.amax(N_Lengths))
+print('\nLongest Beat Length in V:', np.amax(V_Lengths))
+print('\nLongest Beat Length in L:', np.amax(L_Lengths))
+print('\nLongest Beat Length in R:', np.amax(R_Lengths))
+
+aa = 0
+bb = 0
+cc = 0
+dd = 0
+
+for i in range(len(Norm_Labels)):
+    if Norm_Labels[i] == 0:
+        N_Beats[aa,:] = Norm_Beats[i,:]
+        aa = aa + 1
+    if Norm_Labels[i] == 1:
+        V_Beats[bb,:] = Norm_Beats[i,:]
+        bb = bb + 1
+    if Norm_Labels[i] == 2:
+        R_Beats[cc,:] = Norm_Beats[i,:]
+        cc = cc + 1
+    if Norm_Labels[i] == 3:
+        L_Beats[dd,:] = Norm_Beats[i,:]
+        dd = dd + 1    
+    
+#print(N_Beats)
+#print(N_Lengths)
+N_Average = int(sum(N_Lengths)/len(N_Lengths))
+V_Average = int(sum(V_Lengths)/len(V_Lengths))
+R_Average = int(sum(R_Lengths)/len(R_Lengths))
+L_Average = int(sum(L_Lengths)/len(L_Lengths))
+
+
+
+#for i in range(10):
+#    plt.plot(N_Beats[i])
+#plt.xlim(0,600)
+#plt.show()
+
+N_Norm_Beats = np.zeros((aaa,N_Average))
+V_Norm_Beats = np.zeros((bbb,V_Average))
+R_Norm_Beats = np.zeros((ccc,R_Average))
+L_Norm_Beats = np.zeros((ddd,L_Average))
+
+
+
+#print('\nThis is N_Lengths[Q]:', N_Lengths[Q])
+#print('\nThis is N_Average:', N_Average)
+
+
+
+
+
+#for Q in range(aaa):
+#    
+#    Dif = N_Lengths[Q] - N_Average
+#    #print('\nThis is Dif:', Dif)
+#    if Dif < 0:
+#        Spacer = np.ceil( N_Lengths[Q] / abs(Dif))
+#        #print('\nThis is Spacer:', Spacer)
+#    if Dif > 0:
+#        Spacer = np.floor( N_Lengths[Q] / abs(Dif))
+
+
+#    j = 0
+#    for i in range(N_Lengths[Q]):
+       
+#        if (i+1) % Spacer != 0:
+#            N_Norm_Beats[Q,j] = N_Beats[Q,i]
+#            j = j + 1
+    
+#        if (i+1) % Spacer == 0 and Dif < 0:
+#            N_Norm_Beats[Q,j] = N_Beats[Q,i]
+#            j = j + 1
+#            N_Norm_Beats[Q,j] = N_Beats[Q,i]
+#            j = j + 1
+
+        
+#for i in range(aaa):        
+#    plt.plot(N_Norm_Beats[i])
+#    #plt.plot(N_Beats[i])
+#    plt.xlim(0,N_Average)
+#plt.show()
+
+plt.plot(N_Norm_Beats[81])
+plt.xlim(0,N_Average)
+plt.ylabel("MLII/mV")
+plt.xlabel("Time/Samples")
+plt.show()
+
+
+
+
+
+
+for Q in range(bbb):
+    
+    Dif = V_Lengths[Q] - V_Average
+    #print('\nThis is Dif:', Dif)
+    if Dif < 0:
+        Spacer = np.ceil( V_Lengths[Q] / abs(Dif))
+        #print('\nThis is Spacer:', Spacer)
+    if Dif > 0:
+        Spacer = np.floor( V_Lengths[Q] / abs(Dif))
+
+
+    j = 0
+    for i in range(V_Lengths[Q]):
+       
+        if (i+1) % Spacer != 0:
+            V_Norm_Beats[Q,j] = V_Beats[Q,i]
+            j = j + 1
+    
+        if (i+1) % Spacer == 0 and Dif < 0:
+            V_Norm_Beats[Q,j] = V_Beats[Q,i]
+            j = j + 1
+            V_Norm_Beats[Q,j] = V_Beats[Q,i]
+            j = j + 1
+
+        
+#for i in range(bbb):        
+#    plt.plot(V_Norm_Beats[i])
+#    plt.xlim(0,V_Average)
+#plt.show()
+
+plt.plot(V_Norm_Beats[10])
+plt.xlim(0,V_Average)
+plt.ylabel("MLII/mV")
+plt.xlabel("Time/Samples")
+plt.show()
+
+
+
+
+
+for Q in range(ccc):
+    
+    Dif = R_Lengths[Q] - R_Average
+    #print('\nThis is Dif:', Dif)
+    if Dif < 0:
+        Spacer = np.ceil( R_Lengths[Q] / abs(Dif))
+        #print('\nThis is Spacer:', Spacer)
+    if Dif > 0:
+        Spacer = np.floor( R_Lengths[Q] / abs(Dif))
+
+
+    j = 0
+    for i in range(R_Lengths[Q]):
+       
+        if (i+1) % Spacer != 0:
+            R_Norm_Beats[Q,j] = R_Beats[Q,i]
+            j = j + 1
+    
+        if (i+1) % Spacer == 0 and Dif < 0:
+            R_Norm_Beats[Q,j] = R_Beats[Q,i]
+            j = j + 1
+            R_Norm_Beats[Q,j] = R_Beats[Q,i]
+            j = j + 1
+
+        
+#for i in range(ccc):        
+#    plt.plot(R_Norm_Beats[i])
+#    plt.xlim(0,R_Average)
+#plt.show()
+
+plt.plot(R_Norm_Beats[5])
+plt.xlim(0,R_Average)
+plt.ylabel("MLII/mV")
+plt.xlabel("Time/Samples")
+plt.show()
+
+### Problem with the full zero one is that spacer = 1, so mod of spacer is always 0, so just skips infinitely till end
+
+
+
+
+
+
+for Q in range(ddd):
+    
+    Dif = L_Lengths[Q] - L_Average
+    #print('\nThis is Dif:', Dif)
+    if Dif < 0:
+        Spacer = np.ceil( L_Lengths[Q] / abs(Dif))
+        #print('\nThis is Spacer:', Spacer)
+    if Dif > 0:
+        Spacer = np.floor( L_Lengths[Q] / abs(Dif))
+
+
+    j = 0
+    for i in range(L_Lengths[Q]):
+       
+        if (i+1) % Spacer != 0:
+            L_Norm_Beats[Q,j] = L_Beats[Q,i]
+            j = j + 1
+    
+        if (i+1) % Spacer == 0 and Dif < 0:
+            L_Norm_Beats[Q,j] = L_Beats[Q,i]
+            j = j + 1
+            L_Norm_Beats[Q,j] = L_Beats[Q,i]
+            j = j + 1
+
+        
+#for i in range(ddd):        
+#    plt.plot(L_Norm_Beats[i])
+#    plt.xlim(0,L_Average)
+#plt.show()
+
+
+plt.plot(L_Norm_Beats[19])
+plt.xlim(0,L_Average)
+plt.ylabel("MLII/mV")
+plt.xlabel("Time/Samples")
+plt.show()
+
+
+
+###### NEW CELL#####
+###GENERATES NEW BEATS NOW#####
+
+
+V_New_Beats = np.zeros((bbb,V_Average))
+R_New_Beats = np.zeros((ccc,R_Average))
+L_New_Beats = np.zeros((ddd,L_Average))
+print(bbb)
+print(ccc)
+print(ddd)
+print(V_Average)
+print(R_Average)
+print(L_Average)
+
+Ran_Sam = 3
+
+
+
+
+
+
+for k in range(bbb):
+    Ran_Num_V = np.random.randint(low=1, high=bbb, size=Ran_Sam)
+    for i in range(V_Average):
+        for j in range(len(Ran_Num_V)):
+            V_New_Beats[k,i] = V_New_Beats[k,i] + V_Norm_Beats[Ran_Num_V[j],i]
+            
+#        V_New_Beats[k,i] = V_New_Beats[k,i] + (V_Norm_Beats[Ran_Num_V[j],i])
+        V_New_Beats[k,i] = V_New_Beats[k,i]/(Ran_Sam)
+        
+print('Getting somehwere ;)')    
+
+for k in range(ddd):
+    Ran_Num_L = np.random.randint(low=1, high=ddd, size=Ran_Sam)
+    for i in range(L_Average):
+        for j in range(len(Ran_Num_L)):
+            L_New_Beats[k,i] = L_New_Beats[k,i] + L_Norm_Beats[Ran_Num_L[j],i]
+        
+#        L_New_Beats[k,i] = L_New_Beats[k,i] + (L_Norm_Beats[Ran_Num_L[j],i])
+        L_New_Beats[k,i] = L_New_Beats[k,i]/(Ran_Sam)
+    
+print('Getting somehwere ;)')
+    
+for k in range(ccc):   
+    Ran_Num_R = np.random.randint(low=1, high=ccc, size=Ran_Sam)
+    for i in range(R_Average):
+        for j in range(len(Ran_Num_R)):
+            R_New_Beats[k,i] = R_New_Beats[k,i] + R_Norm_Beats[Ran_Num_R[j],i]
+        
+#        R_New_Beats[k,i] = R_New_Beats[k,i] + (R_Norm_Beats[Ran_Num_R[j],i])
+        R_New_Beats[k,i] = R_New_Beats[k,i]/(Ran_Sam)
+
+    
+    
+    
+plt.plot(V_New_Beats[bbb-1])
+plt.xlim(0,V_Average)
+plt.show()    
+
+plt.plot(L_New_Beats[ddd-1])
+plt.xlim(0,L_Average)
+plt.show()
+
+plt.plot(R_New_Beats[ccc-1])
+plt.xlim(0,R_Average)
+plt.show()
+
+
+###NEW CELL###
+###MERGE WITH EXISTING DATA###
+Norm_Beats = np.zeros((12000 + 2*bbb + 2*ccc + 2*ddd, 2924))
+Norm_Labels = [0]*(12000 + 2*bbb + 2*ccc + 2*ddd)
+
+Ran_Num_Normal = np.random.randint(low=1, high=bbb, size=12000)
+
+for i in range(12000):
+    Norm_Beats[i,:] = N_Beats[Ran_Num_Normal[i],:]
+    Norm_Labels[i] = 0
+    
+for i in range(bbb):
+    Norm_Beats[i+12000,:] = V_Beats[i,:]
+    Norm_Labels[i+12000] = 1
+    
+for i in range(ccc):
+    Norm_Beats[i+12000+bbb,:] = R_Beats[i,:]
+    Norm_Labels[i+12000+bbb] = 3
+    
+for i in range(ddd):
+    Norm_Beats[i+12000+bbb+ccc,:] = L_Beats[i,:]
+    Norm_Labels[i+12000+bbb+ccc] = 2
+    
+for i in range(bbb):
+    Norm_Beats[i+12000+bbb+ccc+ddd,0:V_Average] = V_New_Beats[i,0:V_Average]
+    Norm_Labels[i+12000+bbb+ccc+ddd] = 1
+    
+for i in range(ccc):
+    Norm_Beats[i+12000+2*bbb+ccc+ddd,0:R_Average] = R_New_Beats[i,0:R_Average]
+    Norm_Labels[i+12000+2*bbb+ccc+ddd] = 3
+    
+for i in range(ddd):
+    Norm_Beats[i+12000+2*bbb+2*ccc+ddd,0:L_Average] = L_New_Beats[i,0:L_Average]
+    Norm_Labels[i+12000+2*bbb+2*ccc+ddd] = 2
+
+print(Norm_Beats)
+print(Norm_Labels)
+
+#np.savetxt('C:/Users/benlc/downloads/FYP_Norm_Beats_Aug_50.txt', Norm_Beats)
+#np.savetxt('C:/Users/benlc/downloads/FYP_Norm_Labels_Aug_50.txt', Norm_Labels)
+
+
+
+
+#### NEW CELL ###
+###RUN NETWORK ON MERGED DATA###
+
+import tensorflow as tf
+from tensorflow import keras
+import numpy as np
+import matplotlib.pyplot as plt
+import wfdb
+from wfdb import processing
+import os
+import shutil
+import re
+import math
+
+Useable_Labels = [0]*(12000 + 2*bbb + 2*ccc + 2*ddd)
+
+Norm_Labels = np.array(Norm_Labels)
+Norm_Beats = np.array(Norm_Beats)
+
+def unison_shuffled_copies(a, b):
+    assert len(a) == len(b)
+    p = np.random.permutation(len(a))
+    return a[p], b[p]
+
+Norm_Beats, Norm_Labels = unison_shuffled_copies(Norm_Beats, Norm_Labels)
+
+TRAINING_NUMBER = 5000
+
+Train_Beats = np.zeros((len(Useable_Labels)-TRAINING_NUMBER,2924))
+Train_Labels = [0]*(len(Useable_Labels)-TRAINING_NUMBER)
+Test_Beats = np.zeros((TRAINING_NUMBER,2924))
+Test_Labels = [0]*(TRAINING_NUMBER)
+
+
+
+for i in range(len(Useable_Labels)-TRAINING_NUMBER):
+    Train_Beats[i,:] = Norm_Beats[i,:]
+    Train_Labels[i] = Norm_Labels[i]
+for i in range(len(Useable_Labels)-TRAINING_NUMBER,len(Useable_Labels)):
+    Test_Beats[i-(len(Useable_Labels)-TRAINING_NUMBER),:] = Norm_Beats[i,:]
+    Test_Labels[i-(len(Useable_Labels)-TRAINING_NUMBER)] = Norm_Labels[i]
+    
+Train_Labels = np.array(Train_Labels)
+Train_Beats = np.array(Train_Beats)
+Test_Labels = np.array(Test_Labels)
+Test_Beats = np.array(Test_Beats)
+
+
+
+
+
+#model = keras.Sequential([
+#    keras.layers.Dense(len(Norm_Beats[0]), activation='relu'),
+#    keras.layers.Dense(4, activation='softmax')
+#])
+
+
+
+model = keras.Sequential([
+    keras.layers.Dense(len(Norm_Beats[0]), activation='relu'),
+    keras.layers.Dense(units=64, activation='relu'),
+    keras.layers.Dense(units=32, activation='relu'),
+    keras.layers.Dense(units=16, activation='relu'),
+    keras.layers.Dense(units=8, activation='relu'),
+    keras.layers.Dense(units=4, activation='relu'),
+    keras.layers.Dense(units=4, activation='softmax')
+])
+
+model.compile(loss='sparse_categorical_crossentropy', optimizer='sgd', metrics=['accuracy'])
+
+
+
+model.fit(Train_Beats, Train_Labels, epochs=5, batch_size=10)
+
+
+
+predictions = [0]*TRAINING_NUMBER
+d = 0
+w = 0
+Ouch = 0
+Nx = 0
+Vx = 0
+Lx = 0
+Rx = 0
+Nn = 0
+Vn = 0
+Ln = 0
+Rn = 0
+
+predictions = model.predict(Test_Beats)
+for i in range(TRAINING_NUMBER):
+    print(predictions[i])
+    print(np.argmax(predictions[i]))
+    print(Test_Labels[i])
+    print(i)
+    if np.argmax(predictions[i]) != Test_Labels[i]: 
+        d = d + 1
+        print('ERROR MADE HERE')
+        if np.amax(predictions[i]) > 0.9:
+            Ouch = Ouch + 1
+        if Test_Labels[i] == 0:
+            Nx = Nx + np.amax(predictions[i])
+            Nn = Nn + 1
+        if Test_Labels[i] == 1:
+            Vx = Vx + np.amax(predictions[i])
+            Vn = Vn + 1
+        if Test_Labels[i] == 2:
+            Lx = Lx + np.amax(predictions[i])
+            Ln = Ln + 1
+        if Test_Labels[i] == 3:
+            Rx = Rx + np.amax(predictions[i])
+            Rn = Rn + 1
+        
+    if np.amax(predictions[i]) < 0.9:
+        print('Warning')
+        w = w + 1
+
+print('\nNo. Errors:', d)
+print('\nNo. Warnings:', w)
+q = (1 - d/TRAINING_NUMBER)*100
+print('\nTest accuracy:', q)
+r = (1 - w/TRAINING_NUMBER)*100
+print('\nRobust accuracy:', r)
+print(Ouch)
+print(Nx/Nn)
+print(Vx/Vn)
+print(Lx/Ln)
+print(Rx/Rn)
+
+print(Nn)
+print(Vn)
+print(Ln)
+print(Rn)
+
