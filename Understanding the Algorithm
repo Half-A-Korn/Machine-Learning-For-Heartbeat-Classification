@@ -1,0 +1,78 @@
+Understanding the Algorithm:
+-Loading Data
+ 	-Load from wfdb database
+ 	-Use increment function to skip missing numbers
+ 	-Save full-length ECG into variable “record[]” from wfdb.rdrecord
+ 	-Save annotations of full-length ECG into “labels[]”
+ 	-We have 46 individual ECG records
+-Peak Correction
+ 	-Function “processing.gqrs_detect” finds the peaks in the given ECG signal (from wfdb)
+ 	-Stored in “qrs_inds[]”
+ 	-These peaks are often wrong, need to readjust them
+ 	-Use “processing.correct_peaks” to correct them (also from wfdb)
+ 	-Stored in “corrected_peak_inds[]”
+ 	-“corrected_peak_inds” is a [j][i] array where j is the sample it came from (0-45)
+ 	  and I the array containing the list of peaks 
+-Beat Separation
+ 	-Starts by recoding all the lengths of the “corrected_peak_inds” array into “Length[]”
+ 	-Needed as need to define future arrays “peak_seperation” and “cut_start” with the	maximum length being most no. of peaks in a sample
+ 	-Peak separation calculated by finding difference between two successive peaks from		 “corrected peak inds” 
+ 	-peak_seperation[j,i] = corrected_peak_inds[j][i+1] - corrected_peak_inds[j][i]    
+ 	-The last beat is lost this way as no beat after it
+ 	-A “cut_start” is then defined by taking a peak and subtracting 25% of its peak separation	 (the distance to the peak after it)
+ 	-cut_start[j,i] = math.ceil(corrected_peak_inds[j][i] - (0.25 * peak_seperation[j,i]))
+ 	-This is affected by the beat after it and therefore can distort some normal beats
+ 	-“cut_length” then defined by the difference between the “cut_start” values
+	-Lose another beat at the end as last cut start has no end point
+-Beat Storage
+ 	-Beats are saved in 3D “cut_beat” array [46][B][Max(cut_length)]
+ 	-“B” is defined as beats per ECG recordings, so there are 46 ECG, roughly 2000 beats per	 	  recording and then 3rd dimension saves the beat values
+	-“B” is saved into “Beats_Per_Sample” and then values saved into 3rd dimension by cycling m 	  between the cut_start values
+	  cut_beat[j, B, (m-cut_start[j,i])] = record[j].p_signal[m] 						  for m in range(cut_start[j,i],cut_start[j,i+1])
+-Beat/Classification Matching
+ 	-Triple for loop [j][i][q]
+ 	-j cycles through all 46 ECG
+ 	-I cycles through the “corrected_peak_inds” in “Length[j]”
+ 	-q cycles through position of annotations “labels[j].sample[q]”
+ 	-Values of “corrected_peak_inds” and “labels.sample” compared and if abs difference is <20
+ 	-Values are saved into “Useable_Beats” and “Useable_Lables”
+ 	-Useable_Beats[x,:] = cut_beat[j, i, :] 
+ 	-Useable_Labels[x] = labels[j].symbol[q]
+ 	-x is total number of useable beats in all recordings
+-Error Mitigation
+ 	-Two basic safety checks in the Beat Matching section to stop erroneous or unwanted beats
+ 	-First to prevent ‘zero-beats’, which are labelled arrays of full zeroes, there is an if statement  
+ 	 that checks that value of cut_beat[j,i,0] != 0
+ 	-Secondly if statement to remove classifications that we are not looking to cover
+ 	- if labels[j].symbol[q] == 'N' (or ‘V’ or ‘L’ or ‘R’ – very easy to expand upon)
+-Normalisation
+ 	-Labels normalized and stored in “Norm_Labels”
+ 	-Done by series of if statements converting strings to numbers. N=0, V=1, R=2, L=3
+ 	-Beats normalized and stored in “Norm_Beats”
+ 	-Done by finding max abs value of all ECG and dividing every reading by it so scale is -1 to 1
+ 	-Zero-padding was done to make all same length by defining “Norm_Beats” as a matrix of 	 [j][len] full of zeroes where len is length of longest beat
+ 	-So when it is filled in the end will be zero-padded if no value overwrites it
+-Data Shuffling
+ 	-As a ‘N’ beat is typically followed by an ‘N’ beat etc.. the training data will be biased unless 	 shuffled
+ 	- p = np.random.permutation(len(a)) ->   return a[p], b[p]
+ 	-“Norm_Beats” and “Norm_Labels” are shuffled in this manner
+-Data Splitting
+ 	-Need both training data to train algorithm on
+ 	-And test data to validate algorithm on
+ 	-Currently just remove last n values and use that as test data
+ 	-Rest is the training data
+-Neural Network Architecture
+ 	-Optimization will do done later – (if even needed….)
+ 	-All use relu activation function
+ 	-Input layer has nodes equal to len(Normal_Beats[0]) - all beats same length as zero padded
+ 	-No. of epochs
+ 	-Batch size 
+ 	-Optimizers 
+	-Model is trained using model.fit() and trained on “Train_Beats” and “Train_Labels”
+-Accuracy
+ 	-Predictions saved in “predictions” through model.predict(Test_Beats)
+ 	-This gives probabilities of what NN thinks each class is
+ 	-The maximum probability in this array is taken as the NN’s guess at the classification
+ 	-This is then compared to the “Test_Labels” which contains the actually classification
+ 	-If incorrect “d” is increased by one, so errors summed up this way
+ 	-Percentage accuracy is simply how many errors made within a given test sample
